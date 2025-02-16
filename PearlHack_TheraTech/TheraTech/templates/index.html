@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mindful Emotion Guide</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="min-h-screen transition-colors duration-500" id="dynamic-background">
+    <!-- Vibrant therapeutic header with larger text -->
+    <div class="bg-gradient-to-r from-violet-500 to-purple-500 text-center py-12 shadow-md">
+        <h1 class="text-4xl font-light text-white mb-3">TheraTech</h1>
+        <p class="text-violet-50 text-lg">AI-Powered Emotional Wellness at Your Fingertips</p>
+    </div>
+
+    <!-- Intro Section -->
+    <div class="container mx-auto px-4 py-12">
+        <div class="max-w-4xl mx-auto bg-white/90 p-8 rounded-2xl shadow-lg border-2 border-violet-200 mb-12">
+            <h2 class="text-2xl font-light text-violet-700 mb-4">Welcome to TheraTech</h2>
+            <p class="text-gray-700 mb-6">TheraTech is your personal emotional wellness companion, combining cutting-edge AI technology with compassionate care. Our platform uses advanced facial recognition to understand your emotional state and provides real-time support through our therapeutic AI companion, ZenAI - where "Zen" represents the calm and mindful approach to emotional well-being.</p>
+            
+            <div class="grid md:grid-cols-3 gap-6 text-center">
+                <div class="p-4 rounded-xl bg-violet-50">
+                    <h3 class="text-lg font-light text-violet-700 mb-2">Real-Time Analysis</h3>
+                    <p class="text-sm text-gray-600">Instant emotional state detection through advanced AI technology</p>
+                </div>
+                <div class="p-4 rounded-xl bg-violet-50">
+                    <h3 class="text-lg font-light text-violet-700 mb-2">Personalized Support</h3>
+                    <p class="text-sm text-gray-600">Tailored therapeutic responses based on your emotional needs</p>
+                </div>
+                <div class="p-4 rounded-xl bg-violet-50">
+                    <h3 class="text-lg font-light text-violet-700 mb-2">24/7 Availability</h3>
+                    <p class="text-sm text-gray-600">Access emotional support whenever you need it</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="max-w-4xl mx-auto space-y-8">
+            <!-- Video Feed Section -->
+            <div class="bg-white/90 p-8 rounded-2xl shadow-lg border-2 border-violet-200">
+                <h2 class="text-xl font-light mb-6 text-violet-700">Your Reflection Space</h2>
+                <img id="video-feed" src="{{ url_for('video_feed') }}" class="rounded-2xl shadow-md w-full" alt="Live Video">
+            </div>
+
+            <!-- Control Section -->
+            <div class="flex justify-center">
+                <button id="analyze-emotion" class="px-8 py-4 bg-gradient-to-r from-purple-500 to-violet-500 text-white rounded-full font-light hover:from-purple-600 hover:to-violet-600 transition-all shadow-lg hover:shadow-xl transform hover:-translate-y-0.5">
+                    Begin Emotional Reading
+                </button>
+            </div>
+
+            <!-- Emotion Display Section -->
+            <div class="bg-white/90 p-6 rounded-2xl shadow-lg border-2 border-violet-200">
+                <h3 class="text-lg font-light text-violet-700 mb-2">Current Emotional State</h3>
+                <p id="emotion-response" class="text-center mt-4 text-2xl font-light">Awaiting your presence...</p>
+            </div>
+
+            <!-- Therapy Chat Section -->
+            <div class="bg-white/90 p-8 rounded-2xl shadow-lg border-2 border-violet-200">
+                <div id="therapy-chat" class="hidden">
+                    <h3 class="text-lg font-light text-violet-700 mb-6">Mindful Dialogue with ZenAI</h3>
+                    <div id="chat-messages" class="space-y-4 mb-6 max-h-96 overflow-y-auto p-6 bg-gradient-to-b from-violet-50 to-white rounded-2xl"></div>
+                    <div class="flex space-x-4">
+                        <input type="text" id="user-response" 
+                               class="flex-1 p-4 border-2 border-violet-200 rounded-full focus:outline-none focus:ring-2 focus:ring-violet-400 focus:border-transparent bg-white/80"
+                               placeholder="Share your thoughts...">
+                        <button id="send-response" 
+                                class="px-6 py-4 bg-gradient-to-r from-purple-500 to-violet-500 text-white rounded-full font-light hover:from-purple-600 hover:to-violet-600 transition-all">
+                            Share
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+    document.addEventListener("DOMContentLoaded", function() {
+        const therapyChat = document.getElementById("therapy-chat");
+        const chatMessages = document.getElementById("chat-messages");
+        const userResponse = document.getElementById("user-response");
+        const sendResponse = document.getElementById("send-response");
+        const emotionResponse = document.getElementById("emotion-response");
+        const analyzeButton = document.getElementById("analyze-emotion");
+        const dynamicBackground = document.getElementById("dynamic-background");
+        let currentEmotion = "";
+
+        // Vibrant background colors for different emotions
+        const backgroundColors = {
+            'happy': 'bg-gradient-to-br from-yellow-200 via-yellow-100 to-yellow-200',
+            'sad': 'bg-gradient-to-br from-blue-200 via-blue-100 to-blue-200',
+            'angry': 'bg-gradient-to-br from-red-200 via-red-100 to-red-200',
+            'neutral': 'bg-gradient-to-br from-violet-100 via-purple-50 to-violet-100'
+        };
+
+        function updateBackgroundColor(emotion) {
+            Object.values(backgroundColors).forEach(colorClass => {
+                const classes = colorClass.split(' ');
+                classes.forEach(cls => dynamicBackground.classList.remove(cls));
+            });
+            const newClasses = backgroundColors[emotion].split(' ');
+            newClasses.forEach(cls => dynamicBackground.classList.add(cls));
+        }
+
+        function addMessage(sender, text) {
+            const messageDiv = document.createElement("div");
+            messageDiv.className = sender === "therapist" 
+                ? "bg-white/90 p-4 rounded-2xl shadow-md backdrop-blur-sm border-2 border-violet-200" 
+                : "bg-violet-50/90 p-4 rounded-2xl shadow-md backdrop-blur-sm text-right border-2 border-violet-200";
+            messageDiv.textContent = text;
+            chatMessages.appendChild(messageDiv);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+
+        function handleEmotionDetection(data) {
+            currentEmotion = data.emotion.toLowerCase();
+            
+            const colors = {
+                'happy': 'text-yellow-500',
+                'sad': 'text-blue-500',
+                'angry': 'text-red-500',
+                'neutral': 'text-violet-500'
+            };
+            
+            updateBackgroundColor(currentEmotion);
+            
+            emotionResponse.className = `text-center mt-4 text-2xl font-light ${colors[currentEmotion]}`;
+            emotionResponse.textContent = `Feeling ${currentEmotion}`;
+            
+            therapyChat.classList.remove("hidden");
+            fetch(`/get_therapy_question/${currentEmotion}`)
+                .then(response => response.json())
+                .then(data => {
+                    addMessage("therapist", data.question);
+                });
+        }
+
+        analyzeButton.addEventListener("click", function() {
+            chatMessages.innerHTML = "";
+            therapyChat.classList.add("hidden");
+            emotionResponse.textContent = "Reading your emotional state...";
+            
+            fetch("/analyze_emotion")
+                .then(response => response.json())
+                .then(data => {
+                    handleEmotionDetection(data);
+                })
+                .catch(error => {
+                    console.error("Error:", error);
+                    emotionResponse.textContent = "Unable to read emotions at this moment.";
+                });
+        });
+
+        sendResponse.addEventListener("click", function() {
+            if (userResponse.value.trim() === "") return;
+
+            const userText = userResponse.value;
+            addMessage("user", userText);
+
+            fetch('/send_therapy_response', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    response: userText,
+                    emotion: currentEmotion
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                addMessage("therapist", data.response);
+            });
+
+            userResponse.value = "";
+        });
+
+        userResponse.addEventListener("keypress", function(e) {
+            if (e.key === "Enter") {
+                sendResponse.click();
+            }
+        });
+    });
+    </script>
+</body>
+</html>
