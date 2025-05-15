@@ -88,5 +88,5 @@ After attending an introductory computer vision workshop at Pearl Hacks, we were
 ## 👩‍💻 Team
 
 **Khyati Bhatewara**  
-**Kashish Chaudhari**
-**Sai Vyshnavi Gudipalli**
+**Kashish Chaudhari**  
+**Sai Vyshnavi Gudipalli**  
